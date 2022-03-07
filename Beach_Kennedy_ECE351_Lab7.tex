@@ -1,0 +1,270 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                              %
+% Kennedy Beach                                                %
+% ECE 351-51                                                   %
+% Lab 7                                                        %
+% 3/8/2022                                                     %
+%                                                              %
+%                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[12pt]{report}
+\usepackage[english]{babel}
+%\usepackage{natbib}
+\usepackage{url}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{vmargin}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeblue}{rgb}{0,0,0.95}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+backgroundcolor=\color{backcolour},
+commentstyle=\color{codegreen},
+keywordstyle=\color{codeblue},
+numberstyle=\tiny\color{codegray},
+stringstyle=\color{codegreen},
+basicstyle=\ttfamily\footnotesize,
+breakatwhitespace=false,
+breaklines=true,
+captionpos=b,
+keepspaces=true,
+numbers=left,
+numbersep=5pt,
+showspaces=false,
+showstringspaces=false,
+showtabs=false,
+tabsize=2
+}
+\lstset{style=mystyle}
+\setmarginsrb{3 cm}{2.5 cm}{3 cm}{2.5 cm}{1 cm}{1.5 cm}{1 cm}{1.5 cm}
+\title{Lab 7}
+% Title
+\author{Kennedy Beach}
+% Author
+\date{March 8, 2022}
+% Date
+\makeatletter
+\let\thetitle\@title
+\let\theauthor\@author
+\let\thedate\@date
+\makeatother
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\theauthor}
+\lhead{\thetitle}
+\cfoot{\thepage}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\begin{titlepage}
+\centering
+\vspace*{0.5 cm}
+% \includegraphics[scale = 0.075]{bsulogo.png}\\[1.0 cm] % 
+\begin{center}    \textsc{\Large   ECE 351-51 }\\[2.0 cm]
+\end{center}% University Name
+\textsc{\Large March 8, 2022}\\[0.5 cm] % Course 
+\rule{\linewidth}{0.2 mm} \\[0.4 cm]
+{ \huge \bfseries \thetitle}\\
+\rule{\linewidth}{0.2 mm} \\[1.5 cm]
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+% \emph{Submitted To:}\\
+% Name\\
+% Affiliation\\
+%contact info\\
+\end{flushleft}
+\end{minipage}~
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+\emph{Submitted By :} \\
+Kennedy Beach
+\end{flushright}
+\end{minipage}\\[2 cm]
+% \includegraphics[scale = 0.5]{PICMathLogo.png}
+\end{titlepage}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\tableofcontents
+\pagebreak
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\renewcommand{\thesection}{\arabic{section}}
+\section{Introduction}
+The purpose of this lab was to use Laplace-domain block diagrams and factored transfer functions to judge system stability. The poles and zeros of the individual components of the diagrams as well as the overall transfer functions were looked at to determine how stable the system was.
+\section{Equations}
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=15cm]{block_diagram.png}
+    \caption{Block Diagram}
+\end{figure}
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=6cm]{eqts.png}
+    \caption{Component Equations}
+\end{figure}
+
+The factored forms of the component functions are seen below.
+
+\begin{equation*}
+    G(s) = \frac{s+9}{(s+2)(s+4)(s-8)}
+\end{equation*}
+The zeros of G(s) are s = -9 and the poles are s = -4, -2, and 8.
+\begin{equation*}
+    A(s) = \frac{s+4}{(s+1)(s+3)}
+\end{equation*}
+The zeros of A(s) are s = -4, and the poles are s = -3 and -1.
+\begin{equation*}
+    B(s) = (s+12)(s+14)
+\end{equation*}
+B(s) only has zeros at s = -14 and -12.\\ \\
+The open-loop transfer function was then derived by multiplying component A(s) and G(s):
+\begin{equation*}
+H_{open}(s) = \frac{(s+4)(s+9)}{(s+1)(s+3)(s+2)(s+4)(s-8)}
+\end{equation*}
+
+The closed-loop transfer function was derived symbolically, then the unfactored form was calculated through Python.
+
+\begin{equation*}
+H_{closed}(s) = \frac{A*G}{1+B*G}
+\end{equation*}
+
+\begin{equation*}
+H_{closed}(s) = \frac{numA*numG}{denA*denG+denA*B*numG}
+\end{equation*}
+
+\begin{equation*}
+H_{closed}(s) = \frac{s^2+13s+36}{2s^5+41s^4+500s^3+2995s^2+6878s+4344}
+\end{equation*}
+
+\section{Methodology}
+The first part involved using scipy.signal.tf2zpk() to get the poles and zeros of the component functions to verify the calculations. numpy.roots() was used to compute the zeros for B since it is not a proper transfer function. The printed output is seen in the Results section.
+\begin{lstlisting}[language=Python, caption=Poles and zeros of the components]
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.signal as sig
+
+numG = [1,9]
+denG = sig.convolve([1,-6,-16], [1,4])
+
+numA = [1,4]
+denA = [1,4,3]
+
+B = [1,26,168]
+
+G_z, G_p, G_k = sig.tf2zpk(numG, denG)
+print('G zeros: ', G_z, '\nG poles: ', G_p)
+
+A_z, A_p, A_k = sig.tf2zpk(numA, denA)
+print('\nA zeros: ', A_z, '\nA poles: ', A_p)
+
+B_roots = np.roots(B)
+print('\nB roots: ', B_roots)
+
+\end{lstlisting}
+
+The numerator and denominator of the open-loop transfer function were then calculated with scipy.signal.convolve(), and poles and zeros of the transfer function were calculated. The step response of the open-loop transfer function was then plotted.
+
+\begin{lstlisting}[language=Python, caption=Open-loop transfer function calculation and poles and zeros]
+numOpen = sig.convolve(numA, numG)
+denOpen = sig.convolve(denA, denG)
+print('\nOpen num: ', numOpen, '\nOpen den: ', denOpen)
+
+open_z, open_p, open_k = sig.tf2zpk(numOpen, denOpen)
+print('\nOpen loop zeros: ', open_z, '\nOpen loop poles: ', open_p)
+
+steps = 1e-5
+t = np.arange(0, 5 + steps, steps)
+
+tout, yout = sig.step((numOpen, denOpen), T = t)
+
+plt.figure(figsize = (10, 7))
+plt.ylabel('h(t)')
+plt.xlabel('t')
+plt.plot(tout, yout)
+plt.grid()
+plt.suptitle('Step Response of the Open Loop')
+\end{lstlisting}
+
+Next, the closed-loop numerator and denominator were found using scipy.signal.convolve() with the various element numerators and denominators. The equation that explains this is in the Equations section. 
+
+\begin{lstlisting}[language=Python, caption=sig.residue() of the second differential equation]
+numClosed = sig.convolve(numA,numG)
+denClosed = sig.convolve((denG + sig.convolve(B, numG)), denA)
+print('\nClosed num: ', numClosed, '\nClosed den: ', denClosed)
+
+closed_z, closed_p, closed_k = sig.tf2zpk(numClosed, denClosed)
+print('\nClosed loop zeros: ', closed_z, '\nClosed loop poles: ', closed_p)
+
+tout2, yout2 = sig.step((numClosed, denClosed), T = t)
+
+plt.figure(figsize = (10, 7))
+plt.ylabel('h(t)')
+plt.xlabel('t')
+plt.plot(tout2, yout2)
+plt.grid()
+plt.suptitle('Step Response of the Closed Loop')
+\end{lstlisting}
+
+
+
+\section{Results}
+The open-loop transfer function had a positive pole in the denominator, which means that the function would be increasing at some point rather than continually decreasing if all the poles were negative. This means that the open-loop transfer function is not stable. This is seen in its step response where it increases infinitely as it diverges. \\ \\
+Conversely, in the closed-loop transfer function, the poles are negative which means that the transfer function will be decreasing at a certain point. This means that the closed-loop transfer function is stable. This is seen in the step response where it increases, but then plateaus as it eventually converges.
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=15cm]{open.png}
+    \caption{Plot of the Open Loop Step Response}
+\end{figure}
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=15cm]{closed.png}
+    \caption{Plot of the Closed Loop Step Response}
+\end{figure}
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=15cm]{output.png}
+    \caption{Printed output of the zeros and poles of the individual components and the open and closed loop transfer functions}
+\end{figure}
+
+\pagebreak
+\section{Error Analysis}
+There weren't really any errors besides getting scipy.signal.convolve() to work when calculating the denominator of the closed loop. This just required a minor change in how the convolutions were nested.
+\section{Questions}
+\textbf{1. In Part 1 Task 5, why does convolving the factored terms using scipy.signal.convolve()
+result in the expanded form of the numerator and denominator? Would this work with your
+user-defined convolution function from Lab 3? Why or why not?} \\ \\
+Using scipy.signal.convolve() results in the expanded form since that is its default behavior as it multiplies two functions. This is the same behavior as our convolution function in Lab 3 since that function output an array of the sum of the products of two functions at certain times.
+
+\textbf{2. Discuss the difference between the open- and closed-loop systems from Part 1 and Part 2.
+How does stability differ for each case, and why?} \\ \\
+The open-loop system is unstable since it had a positive pole in the denominator. This resulted in it growing exponentially. The closed loop system had negative poles which caused it to converge rather than diverge. The negative feedback loop cancelled out the positive pole found in the open-transfer loop.
+
+\textbf{3. What is the difference between scipy.signal.residue() used in Lab 6 and
+scipy.signal.tf2zpk() used in this lab?} \\ \\
+The residue results in the partial fraction expansion of non-linear systems whereas the tf2zpk function works with linear systems. Although they produce similar results, the residue function computes the residue of a function while the tf2zpk function computes the zeros.
+
+\textbf{4. Is it possible for an open-loop system to be stable? What about for a closed-loop system to
+be unstable? Explain how or how not for each.} \\ \\
+It is possible for either to be stable or unstable. The determinant is if there is a positive pole in the denominator.
+
+\textbf{5. Leave any feedback on the clarity of the expectations, instructions, and deliverables.} \\ \\
+Everything was clear on what needed to be done and turned in.
+
+\section{Conclusion}
+This lab showcased the computational power of Python by using the scipy.signal.convolve() and scipy.signal.tf2zpk functions to factor and expand transfer functions. These functions would make it easy to analyze complex systems. The Python and \LaTeX{} code are seen in \url{https://github.com/Eniac618/ECE351_Code} and \url{https://github.com/Eniac618/ECE351_Reports} respectively.
+
+\end{document}
