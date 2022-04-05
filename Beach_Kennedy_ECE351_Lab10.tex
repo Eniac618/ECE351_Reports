@@ -1,0 +1,258 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                              %
+% Kennedy Beach                                                %
+% ECE 351-51                                                   %
+% Lab 10                                                        %
+% 4/5/2022                                                     %
+%                                                              %
+%                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[12pt]{report}
+\usepackage[english]{babel}
+%\usepackage{natbib}
+\usepackage{url}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{vmargin}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{steinmetz}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeblue}{rgb}{0,0,0.95}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+backgroundcolor=\color{backcolour},
+commentstyle=\color{codegreen},
+keywordstyle=\color{codeblue},
+numberstyle=\tiny\color{codegray},
+stringstyle=\color{codegreen},
+basicstyle=\ttfamily\footnotesize,
+breakatwhitespace=false,
+breaklines=true,
+captionpos=b,
+keepspaces=true,
+numbers=left,
+numbersep=5pt,
+showspaces=false,
+showstringspaces=false,
+showtabs=false,
+tabsize=2
+}
+\lstset{style=mystyle}
+\setmarginsrb{3 cm}{2.5 cm}{3 cm}{2.5 cm}{1 cm}{1.5 cm}{1 cm}{1.5 cm}
+\title{Lab 10}
+% Title
+\author{Kennedy Beach}
+% Author
+\date{April 5, 2022}
+% Date
+\makeatletter
+\let\thetitle\@title
+\let\theauthor\@author
+\let\thedate\@date
+\makeatother
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\theauthor}
+\lhead{\thetitle}
+\cfoot{\thepage}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\begin{titlepage}
+\centering
+\vspace*{0.5 cm}
+% \includegraphics[scale = 0.075]{bsulogo.png}\\[1.0 cm] % 
+\begin{center}    \textsc{\Large   ECE 351-51 }\\[2.0 cm]
+\end{center}% University Name
+\textsc{\Large April 5, 2022}\\[0.5 cm] % Course 
+\rule{\linewidth}{0.2 mm} \\[0.4 cm]
+{ \huge \bfseries \thetitle}\\
+\rule{\linewidth}{0.2 mm} \\[1.5 cm]
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+% \emph{Submitted To:}\\
+% Name\\
+% Affiliation\\
+%contact info\\
+\end{flushleft}
+\end{minipage}~
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+\emph{Submitted By :} \\
+Kennedy Beach
+\end{flushright}
+\end{minipage}\\[2 cm]
+% \includegraphics[scale = 0.5]{PICMathLogo.png}
+\end{titlepage}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\tableofcontents
+\pagebreak
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+\renewcommand{\thesection}{\arabic{section}}
+\section{Introduction}
+The purpose of this lab was to use become familiar with frequency response tools and Bode plots using Python.
+\section{Equations}
+
+The transfer function, and the magnitude and phase of the frequency transfer function are shown below.
+\begin{equation*}
+H(s) = \frac{\frac{1}{RC}s}{s^2+\frac{1}{RC}s+\frac{1}{LC}}
+\end{equation*}
+
+\begin{equation*}
+H(j\omega) = \frac{\frac{1}{RC}j\omega}{(j\omega)^2+\frac{1}{RC}j\omega+\frac{1}{LC}}
+\end{equation*}
+
+\begin{equation*}
+|H(j\omega)| = \frac{\frac{\omega}{RC}}{\sqrt{(-\omega^2+\frac{1}{LC})^2+(\frac{\omega}{RC})^2}}
+\end{equation*}
+
+\begin{equation*}
+\phase{H(j\omega)} = \frac{\pi}{2} - \arctan{(\frac{\frac{\omega}{RC}}{\frac{1}{LC}-\omega^2})}
+\end{equation*}
+
+The signal to be plotted and passed through the RLC circuit that the transfer function describes is seen below:
+\begin{equation*}
+x(t) = cos(2\pi*100t) + cos(2\pi*3024t) +sin(2\pi*50000t)
+\end{equation*}
+
+\section{Methodology}
+The first part involved plotting the magnitude and phase of the transfer function that we found by hand. I did this through a user-defined function.
+
+\begin{lstlisting}[language=Python, caption= User-defined function for the magnitude and phase]
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.signal as sig
+import control
+import control as con
+
+def H (omega, R, L, C):
+    mag = (omega/(R*C)) / np.sqrt(( ((1/(L*C)) - (omega**2) )**2) + (omega/(R*C))**2)
+    mag_dB = 20*np.log10(mag)
+    phase_rad = (np.pi/2) - np.arctan(omega/(R*C) / (-omega**2 + 1/(L*C)))
+    
+    for i in range(len(phase_rad)):
+        if phase_rad[i] >= np.pi/2:
+            phase_rad[i] -= np.pi
+        else:
+            continue
+        
+    phase_deg = phase_rad*180/np.pi 
+    
+    return mag_dB, phase_deg
+
+R = 1e3
+L = 27e-3
+C = 100e-9
+
+steps = 10
+omega = np.arange(1e3, 1e6, steps)
+
+y1_mag, y1_phase = H(omega, R, L, C)
+\end{lstlisting}
+
+The Bode plot of the transfer function was then plotted with scipy.signal.bode(). The frequency response was also plotted using given code.
+
+\begin{lstlisting}[language=Python, caption= scipy.signal.bode()]
+num = [1/(R*C), 0]
+den = [1, 1/(R*C), 1/(L*C)]
+
+y2_freq, y2_mag, y2_phase = sig.bode((num, den), w=omega, n=steps)
+
+sys = con.TransferFunction(num, den)
+_ = con.bode(sys, omega, dB = True, Hz = True, deg = True, Plot = True)
+\end{lstlisting}
+
+The last part involved plotting the given signal, then passing it through the RLC filter using scipy.signal.bilinear() and scipy.signal.1filter().
+
+\begin{lstlisting}[language=Python, caption= Filter Output]
+fs = 50000
+steps = 1/fs
+t = np.arange(0, 0.01+steps, steps)
+x = np.cos(2*np.pi*100*t) + np.cos(2*np.pi*3024*t) + np.sin(2*np.pi*50000*t)
+
+plt.figure(figsize = (10, 7))
+plt.ylabel('x(t)')
+plt.xlabel('t')
+plt.plot(t, x)
+plt.grid()
+plt.suptitle('Plot of x(t) where fs = 50000')
+
+d_num, d_den = sig.bilinear(num, den, fs)
+y_out = sig.lfilter(d_num, d_den, x)
+
+plt.figure(figsize = (10, 7))
+plt.ylabel('y(t)')
+plt.xlabel('t')
+plt.plot(t, y_out)
+plt.grid()
+plt.suptitle('Plot of y(t)')
+\end{lstlisting}
+
+
+\section{Results}
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=16cm]{task1.png}
+    \caption{Hand-calculated plot}
+\end{figure}
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=16cm]{task2.png}
+    \caption{scipy.signal.bode()}
+\end{figure}
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=15cm]{task3.png}
+    \caption{Bode Plot}
+\end{figure}
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=16cm]{task4.png}
+    \caption{x(t)}
+\end{figure}
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=15cm]{task5.png}
+    \caption{Output of x(t) through filter}
+\end{figure}
+
+\pagebreak
+\section{Error Analysis}
+There weren't any errors besides some simple mistypes.
+\section{Questions}
+\textbf{1. Explain how the filter and filtered output in Part 2 makes sense given the Bode plots from
+Part 1. Discuss how the filter modifies specific frequency bands, in Hz.} \\ \\
+Since the Bode plot descibed a bandpass filter, only certain frequencies are accepted while others are filtered out. This is seen in the output where the amplitude is mostly consistent with a uniform frequency.
+
+\textbf{2. Discuss the purpose and workings of
+scipy.signal.bilinear() and scipy.signal.lfilter().} \\ \\
+The sig.bilinear function takes functions in the s-domain and transforms them into the z-domain. Once in the z-domain, the numerator and denominator were put into the sig.1filter function to run them through an electronic filter.
+
+\textbf{3. What happens if you use a different sampling frequency in scipy.signal.bilinear() than
+you used for the time-domain signal?} \\ \\
+If I used a smaller frequency, the output would become more compact with waves that had smaller amplitudes. When I had a larger frequency, the output started to form a rough sine wave.
+
+\textbf{4. Leave any feedback on the clarity of the expectations, instructions, and deliverables.} \\ \\
+Everything was clear on what needed to be done and turned in.
+
+\section{Conclusion}
+This lab delved into Bode plots and outputs from a filter. The Python and \LaTeX{} code are seen in \url{https://github.com/Eniac618/ECE351_Code} and \url{https://github.com/Eniac618/ECE351_Reports} respectively.
+
+\end{document}
